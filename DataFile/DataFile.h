@@ -4,12 +4,12 @@
 
 /*
  * This class provides a wrapper for the SD library for use in logging
- * data collected by the balloon. Functionality includes constructing 
+ * data collected from the balloon. Functionality includes constructing 
  * and writing a file header, automatically generating file names for 
  * the files, and an easy interface for logging individual entries.
  */
 
-#ifndef DATAFILE
+#ifndef DATAFILE_H
 #define DATAFILE_H 1
 
 #include "SD.h"
@@ -21,7 +21,9 @@
 #include "pins_arduino.h"  // for digitalPinToBitMask, etc
 #endif
 
-// Reserve pins 10 and 53 for use with the SD card
+// Reserve pins 10 or 53 for use with the SD card
+#define UNO 0
+#define MEGA 1
 
 #define NUM_ENTRIES 20
 
@@ -34,11 +36,13 @@ class DataFile
         char* entries_[NUM_ENTRIES];
         int numEntries_;
         int currentEntry_;
+        int arduinoType_;
 
     public:
 
         // Constructor which automatically builds a filename
         DataFile();
+        DataFile(int arduinoType);
 
         // Creates the filename, sets up the SD card communication
         void begin();
@@ -57,7 +61,7 @@ class DataFile
         // specific data file
         void writeFileHeader();
 
-        // Writes a new entry to the datafile
+        // Writes a new entry to the datafile (for many types of data)
         void writeEntry(int value);
         void writeEntry(unsigned int value);
         void writeEntry(unsigned long value);

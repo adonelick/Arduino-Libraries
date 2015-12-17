@@ -28,4 +28,5 @@ checkStatus	KEYWORD2
 # Constants (LITERAL1)
 #######################################
 
-
+UNO	LITERAL1
+MEGA	LITERAL1

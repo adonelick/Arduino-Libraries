@@ -5,10 +5,18 @@
 
 #include "DataFile.h"
 
-
 DataFile::DataFile()
     : numEntries_(0),
-      currentEntry_(0)
+      currentEntry_(0),
+      arduinoType_(UNO)
+{
+    filename_ = "DATA000.CSV";
+}
+
+DataFile::DataFile(int arduinoType)
+    : numEntries_(0),
+      currentEntry_(0),
+      arduinoType_(arduinoType)
 {
     filename_ = "DATA000.CSV";
 }
@@ -16,11 +24,17 @@ DataFile::DataFile()
 void DataFile::begin()
 {
     // Start the SD card
-    // This pin needs to be set to output for writing to the
-    // SD card, even if we do not use it
-    pinMode(10, OUTPUT);
-    pinMode(53, OUTPUT);
-    SD.begin(53);
+    // These pins need to be set to output for writing to the
+    // SD card, even if we do not use them. Which pin is used
+    // as the SS pin depends on the type of Arduino
+
+    if (arduinoType_ == MEGA) {
+        pinMode(53, OUTPUT);
+        SD.begin(53);
+    } else {
+        pinMode(10, OUTPUT);
+        SD.begin(10);
+    }
 
     int i = 1;
     while (SD.exists(filename_) && (i < 999))
@@ -69,7 +83,6 @@ void DataFile::writeFileHeader()
     }
 }
 
-// This function assumes that the file is open
 void DataFile::writeEntry(int value)
 {
     if (!dataFile_)
@@ -78,7 +91,6 @@ void DataFile::writeEntry(int value)
     dataFile_.print(value);
     writeEntryEnd();
 }
-
 
 void DataFile::writeEntry(unsigned int value)
 {

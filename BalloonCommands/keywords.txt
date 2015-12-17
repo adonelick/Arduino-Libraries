@@ -1,0 +1,30 @@
+#######################################
+# Syntax Coloring Map For BalloonCommands
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+BalloonCommands	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+CUTDOWN	LITERAL1
+CHANGE_TRANSMIT_RATE	LITERAL1
+MANUAL_HEATER_CONTROL	LITERAL1
+TURN_HEATER_ON	LITERAL1
+TURN_HEATER_OFF	LITERAL1
+SWITCH_RELAYS	LITERAL1
+CHECK_RADIO_CONNECTION	LITERAL1
+

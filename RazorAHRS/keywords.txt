@@ -1,0 +1,30 @@
+#######################################
+# Syntax Coloring Map For RazorAHRS
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+RazorAHRS	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin	KEYWORD2
+available	KEYWORD2
+decodeMessage	KEYWORD2
+getYaw	KEYWORD2
+getPitch	KEYWORD2
+getRoll	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+

@@ -5,6 +5,15 @@
 // Copyright (c) 2014 Andrew Donelick
 // All rights reserved.
 
+/*
+ * This library contains code for sending and recieving packets 
+ * through a 2-meter radio transciever. The code was developed 
+ * for an Alinco DJ-V57T transciever, coupled with Tigertronics 
+ * radio modems. The purpose of this library is to facilitate 
+ * communication with a high altitude balloon module (send commands
+ * and recieve instrument updates) throughout the flight.
+ */
+
 #ifndef PACKET_RADIO_H
 #define PACKET_RADIO_H 1
 
@@ -90,4 +99,4 @@ class PacketRadio
 };
 
 
-#endif
+#endif // PACKET_RADIO_H included

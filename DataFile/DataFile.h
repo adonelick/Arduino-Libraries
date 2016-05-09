@@ -26,14 +26,15 @@
 #define MEGA 1
 
 #define NUM_ENTRIES 20
+#define FILENAME_LENGTH 12
 
 class DataFile
 {
 
     private:
         File dataFile_;
-        char* filename_;
-        char* entries_[NUM_ENTRIES];
+        char filename_[FILENAME_LENGTH];
+        char const* entries_[NUM_ENTRIES];
         int numEntries_;
         int currentEntry_;
         int arduinoType_;
@@ -55,7 +56,7 @@ class DataFile
 
         // Add an entry name to the data file. Data entries should be made
         // in the order that this function was callled.
-        void addEntry(char* entryName); 
+        void addEntry(char const* entryName); 
 
         // Writes the descriptive header for the measurements in a 
         // specific data file
@@ -67,7 +68,7 @@ class DataFile
         void writeEntry(unsigned long value);
         void writeEntry(float value);
         void writeEntry(bool value);
-        void writeEntry(char* value);
+        void writeEntry(char const* value);
 
         // Checks the status of the data file (whether or not is successfully
         // opened and it working)

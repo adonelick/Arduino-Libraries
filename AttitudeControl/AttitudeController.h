@@ -31,6 +31,9 @@ class AttitudeController
 
 private:
 
+    // Whether or not the controller is enabled or not
+    bool enabled_;
+
     // Pins which control the attitude actuators
     uint8_t pins_[3][2];
 
@@ -64,6 +67,12 @@ public:
 
     // Prepares the controller for operation
     void begin();
+
+    // Enables the controller
+    void enable();
+
+    // Disables the controller
+    void disable();
 
     // Sets the pin numbers which control the actuators
     // Pin order: {PLUS, MINUS}

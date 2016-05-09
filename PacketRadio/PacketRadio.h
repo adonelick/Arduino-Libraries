@@ -40,9 +40,6 @@
 #define COMMAND 0x2222
 #define COMMAND_RESPONSE 0x3333
 
-#define NULL 0x0000
-
-
 
 
 class PacketRadio

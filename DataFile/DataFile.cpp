@@ -10,7 +10,7 @@ DataFile::DataFile()
       currentEntry_(0),
       arduinoType_(UNO)
 {
-    filename_ = "DATA000.CSV";
+    strcpy(filename_, "DATA000.CSV");
 }
 
 DataFile::DataFile(int arduinoType)
@@ -18,7 +18,7 @@ DataFile::DataFile(int arduinoType)
       currentEntry_(0),
       arduinoType_(arduinoType)
 {
-    filename_ = "DATA000.CSV";
+    strcpy(filename_, "DATA000.CSV");
 }
 
 void DataFile::begin()
@@ -56,7 +56,7 @@ void DataFile::close()
     dataFile_.close();
 }
 
-void DataFile::addEntry(char* entryName)
+void DataFile::addEntry(char const* entryName)
 {
     entries_[numEntries_] = entryName;
     ++numEntries_;
@@ -134,7 +134,7 @@ void DataFile::writeEntry(bool value)
     writeEntryEnd();
 }
 
-void DataFile::writeEntry(char* value)
+void DataFile::writeEntry(char const* value)
 {
     if (!dataFile_)
         return;

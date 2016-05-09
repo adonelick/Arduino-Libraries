@@ -5,7 +5,8 @@
 
 AttitudeController::AttitudeController(uint32_t waitTime)
     : waitTime_(waitTime),
-      lastUpdateTime_(0)
+      lastUpdateTime_(0),
+      enabled_(false)
 {
     // Nothing to do here...
 }
@@ -16,9 +17,23 @@ void AttitudeController::begin()
     // Sets all the actuator pins as outputs, turns all actuators off
     for (int i = 0; i < 3; ++i)
     {
-        pinMode(pins_[i], OUTPUT);
-        digitalWrite(pins_[i], LOW);
+        for (int j = 0; j < 2; ++j) {
+            pinMode(pins_[i][j], OUTPUT);
+            digitalWrite(pins_[i][j], LOW);
+        }
     }
+}
+
+
+void AttitudeController::enable()
+{
+    enabled_ = true;
+}
+
+
+void AttitudeController::disable()
+{
+    enabled_ = false;
 }
 
 

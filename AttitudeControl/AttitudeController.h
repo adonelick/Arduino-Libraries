@@ -79,7 +79,7 @@ public:
     void setActuatorPins(uint8_t axis, uint8_t plus, uint8_t minus);
 
     // Sets the error threshold at which activation is triggered
-    void setActuationThreshold(int32_t threshold, uint8_t axis);
+    void setActuationThreshold(uint8_t axis, int32_t threshold);
 
     // Sets the controller gains for the specified axis 
     void setGains(uint8_t axis, int32_t p, int32_t i, int32_t d);
@@ -105,6 +105,9 @@ private:
 
     // Update the error terms
     void updateErrors();
+
+    // Convert any angle to an angle between -180 to 180 degrees
+    int32_t normalizeAngle(int32_t angle);
 
 };
 

@@ -34,6 +34,27 @@ void AttitudeController::enable()
 void AttitudeController::disable()
 {
     enabled_ = false;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 2; ++j) {
+            pinMode(pins_[i][j], OUTPUT);
+            digitalWrite(pins_[i][j], LOW);
+        }
+    }
+
+    // Reset the correction errors to zero
+    proportionalError_[PITCH] = 0;
+    proportionalError_[ROLL] = 0;
+    proportionalError_[YAW] = 0;
+
+    integralError_[PITCH] = 0;
+    integralError_[ROLL] = 0;
+    integralError_[YAW] = 0;
+
+    derivativeError_[PITCH] = 0;
+    derivativeError_[ROLL] = 0;
+    derivativeError_[YAW] = 0;
 }
 
 
@@ -44,7 +65,7 @@ void AttitudeController::setActuatorPins(uint8_t axis, uint8_t plus, uint8_t min
 }
 
 
-void AttitudeController::setActuationThreshold(int32_t threshold, uint8_t axis)
+void AttitudeController::setActuationThreshold(uint8_t axis, int32_t threshold)
 {
     thresholds_[axis] = threshold;
 }
@@ -60,9 +81,9 @@ void AttitudeController::setGains(uint8_t axis, int32_t p, int32_t i, int32_t d)
 
 void AttitudeController::updateState(int32_t pitch, int32_t roll, int32_t yaw, uint32_t newTime)
 {
-    actualState_[PITCH] = pitch;
-    actualState_[ROLL] = roll;
-    actualState_[YAW] = yaw;
+    actualState_[PITCH] = normalizeAngle(pitch);
+    actualState_[ROLL] = normalizeAngle(roll);
+    actualState_[YAW] = normalizeAngle(yaw);
 
     uint32_t oldTime = time_[1];
     time_[1] = newTime;
@@ -72,9 +93,9 @@ void AttitudeController::updateState(int32_t pitch, int32_t roll, int32_t yaw, u
 
 void AttitudeController::setDesiredState(int32_t pitch, int32_t roll, int32_t yaw)
 {
-    desiredState_[PITCH] = pitch;
-    desiredState_[ROLL] = roll;
-    desiredState_[YAW] = yaw;
+    desiredState_[PITCH] = normalizeAngle(pitch);
+    desiredState_[ROLL] = normalizeAngle(roll);
+    desiredState_[YAW] = normalizeAngle(yaw);
 }
 
 
@@ -82,6 +103,10 @@ void AttitudeController::updateActuators()
 {
     // Based on the current actuation signal, command the attitude
     // actuators to do what they need to do
+
+    if (!enabled_) {
+        return;
+    }
 
     for (uint8_t axis = 0; axis < 3; ++axis)
     {
@@ -122,6 +147,10 @@ void AttitudeController::updateActuators()
 
 void AttitudeController::updateErrors()
 {
+    if (!enabled_) {
+        return;
+    }
+
     int32_t pitchError = desiredState_[PITCH] - actualState_[PITCH];
     int32_t rollError = desiredState_[ROLL] - actualState_[ROLL];
     int32_t yawError = desiredState_[YAW] - actualState_[YAW];
@@ -139,4 +168,19 @@ void AttitudeController::updateErrors()
     derivativeError_[PITCH] = 0;
     derivativeError_[ROLL] = 0;
     derivativeError_[YAW] = 0;
+}
+
+
+int32_t AttitudeController::normalizeAngle(int32_t angle)
+{
+
+    angle = angle % 36000;
+
+    if (angle > 18000) {
+        return angle - 36000;
+    } else if (angle < -18000) {
+        return angle + 36000;
+    } else {
+        return angle;
+    }
 }

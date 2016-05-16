@@ -16,8 +16,7 @@ AttitudeController::AttitudeController(uint32_t waitTime)
 void AttitudeController::begin()
 {
     // Sets all the actuator pins as outputs, turns all actuators off
-    for (int i = 0; i < 3; ++i)
-    {
+    for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 2; ++j) {
             pinMode(pins_[i][j], OUTPUT);
             digitalWrite(pins_[i][j], LOW);
@@ -36,8 +35,7 @@ void AttitudeController::disable()
 {
     enabled_ = false;
 
-    for (int i = 0; i < 3; ++i)
-    {
+    for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 2; ++j) {
             pinMode(pins_[i][j], OUTPUT);
             digitalWrite(pins_[i][j], LOW);
@@ -100,8 +98,7 @@ void AttitudeController::setGains(uint8_t axis, int32_t p, int32_t i, int32_t d)
 void AttitudeController::updateState(int32_t pitch, int32_t roll, int32_t yaw, uint32_t newTime)
 {
     // Shift all the previous saved time entries back
-    for (uint16_t index = POINTS_TO_STORE - 1; index > 0; --index)
-    {
+    for (uint16_t index = POINTS_TO_STORE - 1; index > 0; --index) {
         time_[index] = time_[index - 1];
     }
 
@@ -135,8 +132,7 @@ void AttitudeController::updateActuators()
         return;
     }
 
-    for (uint8_t axis = 0; axis < 3; ++axis)
-    {
+    for (uint8_t axis = 0; axis < 3; ++axis) {
         int32_t actuation = getActuation(axis);
 
         // If we have passed enough time from the last actuation,
@@ -172,11 +168,10 @@ void AttitudeController::updateErrors()
     int32_t pitchError = desiredState_[PITCH] - actualState_[PITCH];
     int32_t rollError = desiredState_[ROLL] - actualState_[ROLL];
     int32_t yawError = desiredState_[YAW] - actualState_[YAW];
-    int32_t dt = time_[1] - time_[0];
+    int32_t dt = time_[0] - time_[1];
 
     // Shift all the previous saved error entries back
-    for (uint16_t index = POINTS_TO_STORE - 1; index > 0; --index)
-    {
+    for (uint16_t index = POINTS_TO_STORE - 1; index > 0; --index) {
         proportionalError_[PITCH][index] = proportionalError_[PITCH][index - 1];
         proportionalError_[ROLL][index] = proportionalError_[ROLL][index - 1];
         proportionalError_[YAW][index] = proportionalError_[YAW][index - 1];
@@ -230,16 +225,14 @@ int32_t AttitudeController::calculateSlope(int32_t x[], int32_t y[])
 
     // Calculate the numerator
     int32_t numerator = 0;
-    for (uint16_t i = 0; i < numPoints_; ++i)
-    {
+    for (uint16_t i = 0; i < numPoints_; ++i) {
         numerator += (x[i] - meanX)*(y[i] - meanY);
     }
     numerator *= 1000;
 
     // Calculate the denominator
     int32_t denominator = 0;
-    for (uint16_t i = 0; i < numPoints_; ++i)
-    {
+    for (uint16_t i = 0; i < numPoints_; ++i) {
         denominator += (x[i] - meanX)*(x[i] - meanX);
     }
 
@@ -251,8 +244,7 @@ int32_t AttitudeController::mean(int32_t array[])
 {
     // Calculate the integer mean of an array
     int32_t sum = 0;
-    for (uint16_t i = 0; i < numPoints_; ++i)
-    {
+    for (uint16_t i = 0; i < numPoints_; ++i) {
         sum += array[i];
     }
 

@@ -25,6 +25,9 @@
 #define PLUS 0
 #define MINUS 1
 
+#define MAX_ACTUATION 255
+#define POINTS_TO_STORE 10
+
 
 class AttitudeController
 {
@@ -42,7 +45,7 @@ private:
 
     // Current attitude state of the payload
     int32_t actualState_[3];
-    uint32_t time_[2];
+    int32_t time_[POINTS_TO_STORE];
 
     // Gains for the PID controller for all three axes
     int32_t p_gain_[3];
@@ -50,7 +53,7 @@ private:
     int32_t d_gain_[3];
 
     // Error terms for the controller
-    int32_t proportionalError_[3];
+    int32_t proportionalError_[3][POINTS_TO_STORE];
     int32_t integralError_[3];
     int32_t derivativeError_[3];
 
@@ -60,6 +63,9 @@ private:
     // Time to wait before changing the command
     uint32_t waitTime_;
     uint32_t lastUpdateTime_;
+
+    // How many state points are currently stored in the object?
+    int32_t numPoints_;
 
 public:
 
@@ -81,6 +87,9 @@ public:
     // Sets the error threshold at which activation is triggered
     void setActuationThreshold(uint8_t axis, int32_t threshold);
 
+    // Get the PWM command to be sent to the actuators
+    int32_t getActuation(uint8_t axis);
+
     // Sets the controller gains for the specified axis 
     void setGains(uint8_t axis, int32_t p, int32_t i, int32_t d);
 
@@ -95,6 +104,9 @@ public:
     // our attitude measuring sensors
     void updateActuators();
 
+    // Update the error terms
+    void updateErrors();
+
     // Sets the desired pitch, roll, and yaw values to target
     // Units:
     //      Pitch, roll, yaw - hundredths of degrees
@@ -102,12 +114,14 @@ public:
 
 
 private:
-
-    // Update the error terms
-    void updateErrors();
-
     // Convert any angle to an angle between -180 to 180 degrees
     int32_t normalizeAngle(int32_t angle);
+
+    // Calculate the integer slope of a line set to fit the given x,y points
+    int32_t calculateSlope(int32_t x[], int32_t y[]);
+
+    // Calculate the mean of an array
+    int32_t mean(int32_t array[]);
 
 };
 

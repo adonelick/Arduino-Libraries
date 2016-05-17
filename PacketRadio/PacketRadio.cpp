@@ -13,7 +13,8 @@ PacketRadio::PacketRadio(HardwareSerial& radioSerial, uint8_t DSR, uint8_t RTS, 
       pinRTS_(RTS),
       debugSerial_(Serial),
       lastTransmissionTime_(0),
-      delay_(delay)
+      delay_(delay),
+      bufferPosition_(0)
 {
     // Nothing else to do here...
 }
@@ -24,11 +25,17 @@ void PacketRadio::begin()
     pinMode(pinDSR_, INPUT);
     pinMode(pinRTS_, OUTPUT);
     digitalWrite(pinRTS_, LOW);
+    clearBuffer();
 }
 
 bool PacketRadio::available()
 {
-    return digitalRead(pinDSR_) && radioSerial_.available();
+    while (radioSerial_.available()) {
+        buffer_[bufferPosition_] = radioSerial_.read();
+        ++bufferPosition_;
+    }
+
+    return digitalRead(pinDSR_) && (bufferPosition_ > 0);
 }
 
 void PacketRadio::setTransmissionDelay(unsigned long delay)
@@ -76,30 +83,27 @@ bool PacketRadio::recieveData(char packet[], uint16_t& arraySize)
     // This function assumes that data is available to read,
     // that is, DSR is reading HIGH
 
-    char buffer[MAX_BUFFER_LENGTH];
-    uint16_t index = 0;
-
     // Read all the available bytes from the radio's serial port,
     // and store them in the temporary buffer
-    while (available() && index < MAX_BUFFER_LENGTH)
+    while (radioSerial_.available() && bufferPosition_ < MAX_BUFFER_LENGTH)
     {
-        buffer[index] = radioSerial_.read();
-        ++index;
+        buffer_[bufferPosition_] = radioSerial_.read();
+        ++bufferPosition_;
     }
 
     // Get the index of the start of the real message
     uint16_t i = 0;
-    while (!messageStarting(buffer, i) && i < index)
+    while (!messageStarting(buffer_, i) && i < bufferPosition_)
     {
         ++i;
     }
 
     // Loop throught the buffer and extract the entire message
     char message[2*MAX_BUFFER_LENGTH];
-    index = 0;
-    while (!messageEnding(buffer, i))
+    uint16_t index = 0;
+    while (!messageEnding(buffer_, i))
     {
-        message[index] = buffer[i];
+        message[index] = buffer_[i];
         ++index;
         ++i;
 
@@ -112,7 +116,7 @@ bool PacketRadio::recieveData(char packet[], uint16_t& arraySize)
     if (i < 2*MAX_BUFFER_LENGTH) {
         for (uint8_t x = 0; x < 6; ++x)
         {
-            message[index] = buffer[i];
+            message[index] = buffer_[i];
             ++index;
             ++i;
         }
@@ -129,7 +133,7 @@ bool PacketRadio::recieveData(char packet[], uint16_t& arraySize)
         packet[i] = message[i];
     }
 
-
+    clearBuffer();
     return messageStarting(message, 0) && messageEnding(message, index - 6);
 }
 
@@ -211,4 +215,12 @@ bool PacketRadio::messageEnding(char buffer[], uint16_t index)
     bool test6 = (buffer[index + 5] == 'Y');
 
     return (test1 && test2 && test3 && test4 && test5 && test6);
+}
+
+void PacketRadio::clearBuffer()
+{
+    for (uint16_t i = 0; i < MAX_BUFFER_LENGTH; ++i) {
+        buffer_[i] = 0;
+    }
+    bufferPosition_ = 0;
 }

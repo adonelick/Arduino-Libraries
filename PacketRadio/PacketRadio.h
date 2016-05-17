@@ -26,7 +26,7 @@
 #include "pins_arduino.h"  // for digitalPinToBitMask, etc
 #endif
 
-#define MAX_BUFFER_LENGTH 200
+#define MAX_BUFFER_LENGTH 300
 
 #define TRUE 1
 #define FALSE 0
@@ -49,6 +49,8 @@ class PacketRadio
         uint8_t pinRTS_;
         HardwareSerial& radioSerial_;
         HardwareSerial& debugSerial_;
+        uint16_t bufferPosition_;
+        char buffer_[MAX_BUFFER_LENGTH];
         unsigned long lastTransmissionTime_;
         unsigned long delay_;
 
@@ -93,6 +95,9 @@ class PacketRadio
         // Checks whether the next six leters of the given buffer
         // are the end of the message.
         bool messageEnding(char buffer[], uint16_t index);
+
+        // Clears the buffer for receiving data
+        void clearBuffer();
 };
 
 

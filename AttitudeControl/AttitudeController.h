@@ -77,6 +77,9 @@ public:
     // Enables the controller
     void enable();
 
+    // Determines if the controller is enabled or not
+    bool enabled();
+
     // Disables the controller
     void disable();
 

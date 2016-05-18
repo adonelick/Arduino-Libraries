@@ -31,8 +31,18 @@ void AttitudeController::enable()
 }
 
 
+bool AttitudeController::enabled()
+{
+    return enabled_;
+}
+
 void AttitudeController::disable()
 {
+
+    if (!enabled_) {
+        return;
+    }
+
     enabled_ = false;
 
     for (int i = 0; i < 3; ++i) {

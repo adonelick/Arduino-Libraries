@@ -21,7 +21,6 @@ getActuation	KEYWORD2
 setGains	KEYWORD2
 updateState	KEYWORD2
 updateActuators	KEYWORD2
-updateErrors	KEYWORD2
 setDesiredState	KEYWORD2
 
 #######################################

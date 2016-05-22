@@ -65,7 +65,9 @@ private:
     uint32_t lastUpdateTime_;
 
     // How many state points are currently stored in the object?
-    int32_t numPoints_;
+    uint8_t numPoints_;
+    uint8_t startIndex_;
+    uint8_t endIndex_;
 
 public:
 
@@ -107,9 +109,6 @@ public:
     // our attitude measuring sensors
     void updateActuators();
 
-    // Update the error terms
-    void updateErrors();
-
     // Sets the desired pitch, roll, and yaw values to target
     // Units:
     //      Pitch, roll, yaw - hundredths of degrees
@@ -117,6 +116,10 @@ public:
 
 
 private:
+
+    // Update the error terms
+    void updateErrors();
+
     // Convert any angle to an angle between -180 to 180 degrees
     int32_t normalizeAngle(int32_t angle);
 

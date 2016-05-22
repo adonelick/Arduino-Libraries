@@ -7,7 +7,9 @@ AttitudeController::AttitudeController(uint32_t waitTime)
     : waitTime_(waitTime),
       lastUpdateTime_(0),
       enabled_(false),
-      numPoints_(0)
+      numPoints_(0),
+      startIndex_(0),
+      endIndex_(0)
 {
     // Nothing to do here...
 }
@@ -107,20 +109,28 @@ void AttitudeController::setGains(uint8_t axis, int32_t p, int32_t i, int32_t d)
 
 void AttitudeController::updateState(int32_t pitch, int32_t roll, int32_t yaw, uint32_t newTime)
 {
+    /*
     // Shift all the previous saved time entries back
     for (uint16_t index = POINTS_TO_STORE - 1; index > 0; --index) {
         time_[index] = time_[index - 1];
     }
+    */
 
     // Save the most recent attitue and time reading
     actualState_[PITCH] = normalizeAngle(pitch);
     actualState_[ROLL] = normalizeAngle(roll);
     actualState_[YAW] = normalizeAngle(yaw);
-    time_[0] = (int32_t) newTime;
+    time_[endIndex_] = (int32_t) newTime;
+    updateErrors();
 
     // Increment the counter of the number of points stored
+    // Shift the start and end indices of the ring buffers
     if (numPoints_ < POINTS_TO_STORE) {
         ++numPoints_;
+        ++endIndex_;
+    } else {
+        endIndex_ = (endIndex_ + 1) % POINTS_TO_STORE;
+        startIndex_ = (startIndex_ + 1) % POINTS_TO_STORE;
     }
 }
 
@@ -178,18 +188,20 @@ void AttitudeController::updateErrors()
     int32_t pitchError = desiredState_[PITCH] - actualState_[PITCH];
     int32_t rollError = desiredState_[ROLL] - actualState_[ROLL];
     int32_t yawError = desiredState_[YAW] - actualState_[YAW];
-    int32_t dt = time_[0] - time_[1];
+    int32_t dt = time_[endIndex_] - time_[(endIndex_ - 1) % POINTS_TO_STORE];
 
+    /*
     // Shift all the previous saved error entries back
     for (uint16_t index = POINTS_TO_STORE - 1; index > 0; --index) {
         proportionalError_[PITCH][index] = proportionalError_[PITCH][index - 1];
         proportionalError_[ROLL][index] = proportionalError_[ROLL][index - 1];
         proportionalError_[YAW][index] = proportionalError_[YAW][index - 1];
     }
+    */
 
-    proportionalError_[PITCH][0] = pitchError;
-    proportionalError_[ROLL][0] = rollError;
-    proportionalError_[YAW][0] = yawError;
+    proportionalError_[PITCH][endIndex_] = pitchError;
+    proportionalError_[ROLL][endIndex_] = rollError;
+    proportionalError_[YAW][endIndex_] = yawError;
 
     // Prevent integrator wind-up by returning if we are not actually 
     // controlling the payload's attitude

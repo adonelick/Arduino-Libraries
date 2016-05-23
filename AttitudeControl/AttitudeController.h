@@ -26,6 +26,7 @@
 #define MINUS 1
 
 #define MAX_ACTUATION 255
+#define MAX_INTEGRAL 20000
 #define POINTS_TO_STORE 10
 
 

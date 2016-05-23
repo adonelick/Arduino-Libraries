@@ -9,7 +9,7 @@ AttitudeController::AttitudeController(uint32_t waitTime)
       enabled_(false),
       numPoints_(0),
       startIndex_(0),
-      endIndex_(0)
+      endIndex_(POINTS_TO_STORE - 1)
 {
     // Nothing to do here...
 }
@@ -24,6 +24,10 @@ void AttitudeController::begin()
             digitalWrite(pins_[i][j], LOW);
         }
     }
+
+    integralError_[PITCH] = 0;
+    integralError_[ROLL] = 0;
+    integralError_[YAW] = 0;
 }
 
 
@@ -49,7 +53,6 @@ void AttitudeController::disable()
 
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 2; ++j) {
-            pinMode(pins_[i][j], OUTPUT);
             digitalWrite(pins_[i][j], LOW);
         }
     }
@@ -85,10 +88,20 @@ int32_t AttitudeController::getActuation(uint8_t axis)
     int32_t d = d_gain_[axis];
 
     // Calculate the actuation from the compensator
-    int32_t actuation = proportionalError_[axis][0]/p;
-    actuation += integralError_[axis]/i;
-    actuation += derivativeError_[axis]/d;
+    int32_t actuation = 0;
+    if (p != 0) {
+        actuation += proportionalError_[axis][endIndex_]/p;
+    }
 
+    if (i != 0) {
+        actuation += integralError_[axis]/i;
+    }
+
+    if (d != 0) {
+        actuation += derivativeError_[axis]/d;
+    }
+    
+    // Limit the actuation to that available for the actuators
     if (actuation > MAX_ACTUATION) {
         actuation = MAX_ACTUATION;
     } else if (actuation < -MAX_ACTUATION) {
@@ -109,12 +122,15 @@ void AttitudeController::setGains(uint8_t axis, int32_t p, int32_t i, int32_t d)
 
 void AttitudeController::updateState(int32_t pitch, int32_t roll, int32_t yaw, uint32_t newTime)
 {
-    /*
-    // Shift all the previous saved time entries back
-    for (uint16_t index = POINTS_TO_STORE - 1; index > 0; --index) {
-        time_[index] = time_[index - 1];
+    // Increment the counter of the number of points stored
+    // Shift the start and end indices of the ring buffers
+    if (numPoints_ < POINTS_TO_STORE) {
+        ++numPoints_;
+        endIndex_ = (endIndex_ + 1) % POINTS_TO_STORE;
+    } else {
+        endIndex_ = (endIndex_ + 1) % POINTS_TO_STORE;
+        startIndex_ = (startIndex_ + 1) % POINTS_TO_STORE;
     }
-    */
 
     // Save the most recent attitue and time reading
     actualState_[PITCH] = normalizeAngle(pitch);
@@ -122,16 +138,6 @@ void AttitudeController::updateState(int32_t pitch, int32_t roll, int32_t yaw, u
     actualState_[YAW] = normalizeAngle(yaw);
     time_[endIndex_] = (int32_t) newTime;
     updateErrors();
-
-    // Increment the counter of the number of points stored
-    // Shift the start and end indices of the ring buffers
-    if (numPoints_ < POINTS_TO_STORE) {
-        ++numPoints_;
-        ++endIndex_;
-    } else {
-        endIndex_ = (endIndex_ + 1) % POINTS_TO_STORE;
-        startIndex_ = (startIndex_ + 1) % POINTS_TO_STORE;
-    }
 }
 
 
@@ -190,15 +196,6 @@ void AttitudeController::updateErrors()
     int32_t yawError = desiredState_[YAW] - actualState_[YAW];
     int32_t dt = time_[endIndex_] - time_[(endIndex_ - 1) % POINTS_TO_STORE];
 
-    /*
-    // Shift all the previous saved error entries back
-    for (uint16_t index = POINTS_TO_STORE - 1; index > 0; --index) {
-        proportionalError_[PITCH][index] = proportionalError_[PITCH][index - 1];
-        proportionalError_[ROLL][index] = proportionalError_[ROLL][index - 1];
-        proportionalError_[YAW][index] = proportionalError_[YAW][index - 1];
-    }
-    */
-
     proportionalError_[PITCH][endIndex_] = pitchError;
     proportionalError_[ROLL][endIndex_] = rollError;
     proportionalError_[YAW][endIndex_] = yawError;
@@ -213,6 +210,15 @@ void AttitudeController::updateErrors()
     integralError_[PITCH] += (pitchError*dt) / 1000;
     integralError_[ROLL] += (rollError*dt) / 1000;
     integralError_[YAW] += (yawError*dt) / 1000;
+
+    // Limit the integration value
+    for (uint8_t axis = 0; axis < 3; ++axis) {
+        if (integralError_[axis] > MAX_INTEGRAL) {
+            integralError_[axis] = MAX_INTEGRAL;
+        } else if (integralError_[axis] < -MAX_INTEGRAL) {
+            integralError_[axis] = -MAX_INTEGRAL;
+        }
+    }
 
     // Calculate the derivative of the error (with noise reduction)
     derivativeError_[PITCH] = calculateSlope(time_, proportionalError_[PITCH]);
@@ -264,6 +270,10 @@ int32_t AttitudeController::calculateSlope(int32_t x[], int32_t y[])
 
 int32_t AttitudeController::mean(int32_t array[])
 {
+    if (numPoints_ == 0) {
+        return 0;
+    }
+
     // Calculate the integer mean of an array
     int32_t sum = 0;
     for (uint16_t i = 0; i < numPoints_; ++i) {
@@ -272,4 +282,3 @@ int32_t AttitudeController::mean(int32_t array[])
 
     return sum / numPoints_;
 }
-
